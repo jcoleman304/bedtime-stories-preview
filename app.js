@@ -4,6 +4,7 @@
   const BACKEND_READY = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_KEY);
   const sb = BACKEND_READY ? supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY) : null;
   const FN_URL = BACKEND_READY ? `${CFG.SUPABASE_URL}/functions/v1/generate-story` : "";
+  const DEMO = !BACKEND_READY;
 
   const LESSONS = [
     ["kindness", "💛"], ["courage", "🦁"], ["honesty", "🌟"], ["patience", "🐢"],
@@ -24,6 +25,7 @@
     authMode: "signup", libraryFilter: "all",
   };
 
+  let reading = false, utterQueue = [];
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -69,8 +71,8 @@
   $("#auth-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const err = $("#auth-error"); err.hidden = true;
-    if (!BACKEND_READY) { $("#backend-notice").hidden = false; return; }
     const fd = new FormData(e.target);
+    if (DEMO) { demoSignIn(fd.get("email").trim()); return; }
     const email = fd.get("email").trim(), password = fd.get("password");
     const btn = $("#auth-submit"); btn.disabled = true;
     try {
@@ -87,6 +89,7 @@
   });
 
   $("#btn-signout").addEventListener("click", async () => {
+    if (DEMO) { demoSignOut(); return; }
     await sb.auth.signOut();
   });
 
@@ -123,7 +126,69 @@
     sb.auth.getSession().then(({ data }) => { if (!data.session) show("landing"); });
   } else {
     $("#backend-notice").hidden = false;
+    $$(".demo-banner").forEach((b) => (b.hidden = false));
+    if (demoLoad()) { show(state.children.length ? "home" : "child"); if (!state.children.length) openChildForm(null); }
+    else show("landing");
+  }
+
+  /* ---------- Demo mode (no backend yet): everything lives in this browser ---------- */
+  const DKEY = "bedtime.demo";
+  function demoSave() {
+    localStorage.setItem(DKEY, JSON.stringify({ session: state.session, profile: state.profile, children: state.children, stories: state.stories }));
+  }
+  function demoLoad() {
+    try {
+      const d = JSON.parse(localStorage.getItem(DKEY) || "null");
+      if (!d?.session) return false;
+      Object.assign(state, { session: d.session, profile: d.profile, children: d.children, stories: d.stories });
+      if (!state.children.find((x) => x.id === state.childId)) state.childId = state.children[0]?.id || null;
+      return true;
+    } catch { return false; }
+  }
+  function demoSignIn(email) {
+    state.session = { user: { id: "demo-parent", email: email || "parent@example.com" } };
+    state.profile = { id: "demo-parent", plan: "free" };
+    state.children = []; state.stories = []; state.childId = null;
+    demoSave();
+    toast("Preview account ready");
+    show("child"); openChildForm(null);
+  }
+  function demoSignOut() {
+    localStorage.removeItem(DKEY);
+    state.session = null; state.profile = null; state.children = []; state.stories = [];
     show("landing");
+  }
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
+  function demoStory(c, lesson, prev) {
+    const lc = (v, d) => (v || d).toLowerCase().replace(/^the /, "");
+    const color = lc(c.favorite_color, "golden"), food = lc(c.favorite_food, "warm cookies"),
+      animal = lc(c.favorite_animal, "little fox"), place = (c.favorite_place || "the park").toLowerCase(),
+      activity = lc(c.favorite_activity, "exploring");
+    const L = {
+      kindness: ["helped", "Being kind made the whole night feel warmer."],
+      courage: ["took a brave breath", "Being brave was easier with a friend nearby."],
+      honesty: ["told the truth", "Telling the truth made everything feel light again."],
+      patience: ["waited calmly", "Waiting quietly made the surprise even sweeter."],
+      confidence: ["stood up tall", "Believing in yourself is its own kind of magic."],
+      sharing: ["shared", "Sharing turned one small joy into two."],
+      friendship: ["made a new friend", "A good friend makes every adventure better."],
+      gratitude: ["said thank you", "A thankful heart is a cozy heart."],
+      listening: ["listened closely", "Good listeners hear the best secrets."],
+      faith: ["trusted that things would be okay", "Hope is a soft light that never goes out."],
+      "trying new things": ["tried something new", "New things are only scary until they are fun."],
+      "bedtime calm": ["took slow, sleepy breaths", "Calm nights make the happiest mornings."],
+    }[lesson] || ["did something wonderful", "What a lovely night it was."];
+    const opener = prev
+      ? `The next evening, ${c.name} went back to ${place}, hoping to find the ${animal} again.`
+      : `One cozy evening, ${c.name} put on a favorite ${color} jacket and headed to ${place}.`;
+    const body = [
+      `${opener} The sky was turning the color of ${color} sherbet, and the air smelled a little like ${food}.`,
+      `Near a quiet corner, ${c.name} spotted a ${animal} who looked unsure of what to do. "Would you like to go ${activity} with me?" ${c.name} asked. The ${animal} nodded shyly.`,
+      `Together they went ${activity} until the first stars came out. When a tricky moment came, ${c.name} ${L[0]}, and the ${animal} wiggled with happiness. ${L[1]}`,
+      `Back at home, ${c.name} snuggled under a soft ${color} blanket, feeling safe, loved, and very sleepy. "Goodnight, little ${animal}," ${c.name} whispered. And the stars whispered goodnight right back.`,
+    ].join("\n\n");
+    const titles = [`${c.name} and the ${cap(animal)}`, `The ${cap(color)} Evening`, `${c.name}'s ${cap(place)} Adventure`, `A Night of ${cap(lesson)}`];
+    return { id: uid(), parent_id: "demo-parent", child_id: c.id, title: titles[(c.name.length + lesson.length) % titles.length], body, lesson, continues_from: prev?.id || null, is_favorite: false, created_at: new Date().toISOString() };
   }
 
   /* ---------- Home ---------- */
@@ -212,7 +277,6 @@
 
   $("#child-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!BACKEND_READY) return;
     const f = e.target, err = $("#child-error"); err.hidden = true;
     const row = {
       parent_id: state.session.user.id,
@@ -222,12 +286,19 @@
     ["favorite_color", "favorite_food", "favorite_animal", "favorite_place", "favorite_activity"]
       .forEach((k) => (row[k] = f.elements[k].value.trim() || null));
     const id = f.elements.id.value;
-    const q = id ? sb.from("children").update(row).eq("id", id) : sb.from("children").insert(row);
-    const { data, error } = await q.select().single();
-    if (error) { err.textContent = error.message; err.hidden = false; return; }
+    let data;
+    if (DEMO) {
+      data = { ...(state.children.find((c) => c.id === id) || { id: uid(), created_at: new Date().toISOString() }), ...row };
+    } else {
+      const q = id ? sb.from("children").update(row).eq("id", id) : sb.from("children").insert(row);
+      const res = await q.select().single();
+      if (res.error) { err.textContent = res.error.message; err.hidden = false; return; }
+      data = res.data;
+    }
     const i = state.children.findIndex((c) => c.id === data.id);
     if (i >= 0) state.children[i] = data; else state.children.push(data);
     state.childId = data.id; localStorage.setItem("bedtime.childId", data.id);
+    if (DEMO) demoSave();
     toast(id ? "Favorites updated" : `${data.name} added`);
     show(id ? "home" : "lesson");
   });
@@ -235,12 +306,15 @@
     const id = $("#child-form").elements.id.value;
     const c = state.children.find((x) => x.id === id);
     if (!c || !confirm(`Remove ${c.name} and their stories?`)) return;
-    const { error } = await sb.from("children").delete().eq("id", id);
-    if (error) { toast(error.message); return; }
+    if (!DEMO) {
+      const { error } = await sb.from("children").delete().eq("id", id);
+      if (error) { toast(error.message); return; }
+    }
     state.children = state.children.filter((x) => x.id !== id);
     state.stories = state.stories.filter((s) => s.child_id !== id);
     state.childId = state.children[0]?.id || null;
     localStorage.setItem("bedtime.childId", state.childId || "");
+    if (DEMO) demoSave();
     show("home");
   });
 
@@ -278,6 +352,13 @@
     let i = 0; $("#gen-msg").textContent = GEN_MSGS[0];
     const rot = setInterval(() => ($("#gen-msg").textContent = GEN_MSGS[++i % GEN_MSGS.length]), 1800);
     try {
+      if (DEMO) {
+        await new Promise((r) => setTimeout(r, 2600));
+        const prev = state.continueFrom ? state.stories.find((x) => x.id === state.continueFrom) : null;
+        const story = demoStory(c, state.lesson, prev);
+        state.stories.unshift(story); state.continueFrom = null; demoSave();
+        openStory(story, "home"); return;
+      }
       const { data: { session } } = await sb.auth.getSession();
       const res = await fetch(FN_URL, {
         method: "POST",
@@ -322,9 +403,11 @@
   }
   $("#btn-fav").addEventListener("click", async () => {
     const s = state.story, next = !s.is_favorite;
-    const { error } = await sb.from("stories").update({ is_favorite: next }).eq("id", s.id);
-    if (error) { toast(error.message); return; }
-    s.is_favorite = next; setFav(next); toast(next ? "Saved to your library" : "Removed from saved");
+    if (!DEMO) {
+      const { error } = await sb.from("stories").update({ is_favorite: next }).eq("id", s.id);
+      if (error) { toast(error.message); return; }
+    }
+    s.is_favorite = next; setFav(next); if (DEMO) demoSave(); toast(next ? "Saved to your library" : "Removed from saved");
   });
   $("#btn-share").addEventListener("click", async () => {
     const s = state.story;
@@ -334,7 +417,6 @@
   });
 
   /* ---------- Read to me (device voice for the preview) ---------- */
-  let reading = false, utterQueue = [];
   function pickVoice() {
     const voices = speechSynthesis.getVoices();
     const prefer = ["Samantha", "Karen", "Moira", "Google US English", "Microsoft Aria"];
@@ -386,8 +468,10 @@
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
   $$("[data-choose]").forEach((b) => b.addEventListener("click", async () => {
     const next = b.dataset.choose; if (next === plan()) return;
-    const { error } = await sb.from("profiles").update({ plan: next }).eq("id", state.session.user.id);
-    if (error) { toast(error.message); return; }
-    state.profile.plan = next; renderPlan(); toast(`You're on ${cap(next)}`);
+    if (!DEMO) {
+      const { error } = await sb.from("profiles").update({ plan: next }).eq("id", state.session.user.id);
+      if (error) { toast(error.message); return; }
+    }
+    state.profile.plan = next; if (DEMO) demoSave(); renderPlan(); toast(`You're on ${cap(next)}`);
   }));
 })();

@@ -4,6 +4,7 @@
   --danger:#ff8a8a; --radius:22px; --shadow:0 14px 40px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;min-height:100%}
 body{font-family:Nunito,system-ui,-apple-system,sans-serif;background:radial-gradient(120% 80% at 50% -10%,#2a2f6e 0%,var(--night-2) 35%,var(--night) 100%);color:var(--cream);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 h1,h2,h3{font-family:Fredoka,Nunito,sans-serif;font-weight:600;letter-spacing:.2px;margin:0 0 8px}
