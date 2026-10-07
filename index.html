@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b1030">
+<title>1-Minute Bedtime Stories</title>
+<meta name="description" content="Your child's favorite things. Their own adventure. One magical minute before bed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b1030'/%3E%3Cpath d='M40 14a18 18 0 1 0 10 32A14 14 0 0 1 40 14z' fill='%23ffd678'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="sky" aria-hidden="true">
+  <div class="stars s1"></div><div class="stars s2"></div><div class="stars s3"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div>
+</div>
+
+<main id="app">
+
+  <!-- Landing -->
+  <section class="view" id="view-landing">
+    <div class="hero">
+      <div class="moon" aria-hidden="true"></div>
+      <h1>1-Minute<br>Bedtime Stories</h1>
+      <p class="tagline">Your child's favorite things. Their own adventure.<br><strong>One magical minute before bed.</strong></p>
+      <button class="btn primary big" data-go="auth">Create tonight's story</button>
+      <p class="muted small">Free to start. No credit card.</p>
+    </div>
+
+    <div class="card steps">
+      <h2>How it works</h2>
+      <ol>
+        <li><span class="num">1</span><div><b>Tell us their favorites</b><span>Color, food, animal, place, activity.</span></div></li>
+        <li><span class="num">2</span><div><b>Pick tonight's lesson</b><span>Kindness, courage, patience, sharing...</span></div></li>
+        <li><span class="num">3</span><div><b>Read or listen together</b><span>A brand-new story in seconds. About one minute long.</span></div></li>
+      </ol>
+    </div>
+
+    <div class="card sample">
+      <div class="pill">Sample story</div>
+      <h3>Ava and the Blue Puppy</h3>
+      <p>Ava zipped up her favorite blue jacket and skipped into the mall, where the lights twinkled like tiny stars. Near the pizza shop she heard a soft whimper. A small puppy with floppy ears sat all alone...</p>
+      <p class="muted small">Every story is written fresh for your child. This one was made for Ava, who loves blue, pizza, puppies, and the mall.</p>
+    </div>
+
+    <div class="card pricing-teaser">
+      <h2>Simple plans</h2>
+      <div class="tiers">
+        <div><b>Free</b><span>3 stories a week</span></div>
+        <div><b>Premium</b><span>$4.99/mo. Unlimited + narration</span></div>
+        <div><b>Family</b><span>$7.99/mo. Up to 5 children</span></div>
+      </div>
+      <button class="btn primary" data-go="auth">Get started</button>
+    </div>
+
+    <p class="muted tiny center">Made for parents. Children never create accounts. Stories are generated with safety checks and are never shared with anyone but you.</p>
+  </section>
+
+  <!-- Auth -->
+  <section class="view" id="view-auth" hidden>
+    <button class="back" data-go="landing" aria-label="Back">&larr;</button>
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-authmode="signup">Create account</button>
+        <button class="tab" data-authmode="signin">Sign in</button>
+      </div>
+      <p class="muted small">For parents and guardians. Your child never needs an account.</p>
+      <form id="auth-form">
+        <label>Email <input type="email" name="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password <input type="password" name="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters"></label>
+        <button class="btn primary big" type="submit" id="auth-submit">Create account</button>
+      </form>
+      <p class="error" id="auth-error" hidden></p>
+      <p class="notice" id="backend-notice" hidden>The story engine is being connected. Accounts and stories will work as soon as it is live.</p>
+    </div>
+  </section>
+
+  <!-- Home -->
+  <section class="view app-view" id="view-home" hidden>
+    <header class="top">
+      <div><div class="eyebrow" id="home-greeting">Good evening</div><h2>Who's going to bed?</h2></div>
+      <button class="icon-btn" id="btn-signout" title="Sign out">&#x23FB;</button>
+    </header>
+
+    <div class="chips" id="child-chips"></div>
+
+    <div class="card cta-card" id="home-cta" hidden>
+      <div class="eyebrow">Tonight for <span id="cta-child-name"></span></div>
+      <button class="btn primary big" id="btn-new-story">Create tonight's story</button>
+      <button class="btn ghost" id="btn-edit-child">Edit favorites</button>
+    </div>
+
+    <div class="card empty" id="home-empty" hidden>
+      <div class="moon small-moon" aria-hidden="true"></div>
+      <h3>Add your first child</h3>
+      <p class="muted">A few favorite things is all it takes to write their very own adventure.</p>
+      <button class="btn primary" data-go="child">Add a child</button>
+    </div>
+
+    <div id="home-recent" hidden>
+      <h3 class="section-title">Recent stories</h3>
+      <div class="story-list" id="home-story-list"></div>
+    </div>
+
+    <p class="quota" id="home-quota"></p>
+  </section>
+
+  <!-- Child profile -->
+  <section class="view app-view" id="view-child" hidden>
+    <button class="back" data-go="home" aria-label="Back">&larr;</button>
+    <h2 id="child-form-title">Tell us about your child</h2>
+    <p class="muted">Fun questions, quick answers. You can change these anytime.</p>
+    <form id="child-form" class="card">
+      <input type="hidden" name="id">
+      <label>Child's first name <input name="name" required maxlength="40" placeholder="Ava"></label>
+      <div class="field">
+        <span class="label">Age</span>
+        <div class="choice-row" data-choice="age_range">
+          <button type="button" data-value="3-4">3-4</button>
+          <button type="button" data-value="5-6" class="active">5-6</button>
+          <button type="button" data-value="7-8">7-8</button>
+          <button type="button" data-value="9-10">9-10</button>
+        </div>
+      </div>
+      <label>Favorite color <input name="favorite_color" placeholder="Blue"></label>
+      <label>Favorite food <input name="favorite_food" placeholder="Pizza"></label>
+      <label>Favorite animal <input name="favorite_animal" placeholder="Puppy"></label>
+      <label>Favorite place <input name="favorite_place" placeholder="The mall"></label>
+      <label>Favorite activity <input name="favorite_activity" placeholder="Dancing"></label>
+      <button class="btn primary big" type="submit">Save</button>
+      <button class="btn danger-link" type="button" id="btn-delete-child" hidden>Remove this child</button>
+      <p class="error" id="child-error" hidden></p>
+    </form>
+  </section>
+
+  <!-- Lesson -->
+  <section class="view app-view" id="view-lesson" hidden>
+    <button class="back" data-go="home" aria-label="Back">&larr;</button>
+    <div class="eyebrow">Tonight for <span id="lesson-child-name"></span></div>
+    <h2>What should they learn tonight?</h2>
+    <div class="lesson-grid" id="lesson-grid"></div>
+    <label class="toggle" id="continue-toggle" hidden>
+      <input type="checkbox" id="continue-check">
+      <span>Continue last night's adventure: <em id="continue-title"></em></span>
+    </label>
+    <button class="btn primary big" id="btn-generate" disabled>Create my story</button>
+    <p class="error" id="lesson-error" hidden></p>
+  </section>
+
+  <!-- Generating -->
+  <section class="view app-view" id="view-generating" hidden>
+    <div class="generating">
+      <div class="moon pulse" aria-hidden="true"></div>
+      <h2 id="gen-msg">Sprinkling stardust...</h2>
+      <p class="muted">Writing a story just for <span id="gen-child-name"></span></p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section class="view app-view" id="view-story" hidden>
+    <button class="back" id="story-back" aria-label="Back">&larr;</button>
+    <article class="story card">
+      <div class="story-meta"><span class="pill" id="story-lesson"></span><span class="muted small" id="story-date"></span></div>
+      <h2 id="story-title"></h2>
+      <div class="story-body" id="story-body"></div>
+      <div class="story-actions">
+        <button class="btn primary" id="btn-read" aria-pressed="false">&#9654; Read to me</button>
+        <button class="btn ghost" id="btn-fav" aria-pressed="false">&#9734; Save</button>
+        <button class="btn ghost" id="btn-share">Share</button>
+      </div>
+    </article>
+    <div class="story-next">
+      <button class="btn primary big" id="btn-another">Create another</button>
+      <button class="btn ghost" id="btn-continue">Continue this adventure tomorrow</button>
+    </div>
+    <p class="muted tiny center" id="narration-note">Narration uses your device's built-in voice in this preview. Premium voices come with the launch.</p>
+  </section>
+
+  <!-- Library -->
+  <section class="view app-view" id="view-library" hidden>
+    <header class="top"><h2>Story library</h2></header>
+    <div class="chips" id="library-chips"></div>
+    <div class="story-list" id="library-list"></div>
+    <p class="muted center" id="library-empty" hidden>No stories yet. Tonight's a good night to start.</p>
+  </section>
+
+  <!-- Plan -->
+  <section class="view app-view" id="view-plan" hidden>
+    <header class="top"><h2>Your plan</h2></header>
+    <p class="notice">Preview mode: choosing a plan switches your account instantly and no payment is collected. Billing is wired before launch.</p>
+    <div class="plans" id="plans">
+      <div class="plan card" data-plan="free">
+        <div class="plan-head"><b>Free</b><span>$0</span></div>
+        <ul><li>3 stories a week</li><li>1 child profile</li><li>Read to me</li></ul>
+        <button class="btn ghost" data-choose="free">Choose Free</button>
+      </div>
+      <div class="plan card featured" data-plan="premium">
+        <div class="plan-head"><b>Premium</b><span>$4.99<small>/mo</small></span></div>
+        <ul><li>Unlimited stories</li><li>Read to me narration</li><li>Saved story library</li><li>All lessons and themes</li></ul>
+        <button class="btn primary" data-choose="premium">Choose Premium</button>
+      </div>
+      <div class="plan card" data-plan="family">
+        <div class="plan-head"><b>Family</b><span>$7.99<small>/mo</small></span></div>
+        <ul><li>Everything in Premium</li><li>Up to 5 child profiles</li><li>Continuing adventures</li></ul>
+        <button class="btn ghost" data-choose="family">Choose Family</button>
+      </div>
+    </div>
+    <p class="muted small center" id="plan-current"></p>
+  </section>
+
+</main>
+
+<nav class="tabbar" id="tabbar" hidden>
+  <button data-go="home" class="active"><span>&#127769;</span>Tonight</button>
+  <button data-go="library"><span>&#128218;</span>Library</button>
+  <button data-go="plan"><span>&#10024;</span>Plan</button>
+</nav>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+.dbpass
+.project.json
+.env
+supabase/.temp
+supabase/.branches
+.DS_Store
