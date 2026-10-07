@@ -14,9 +14,10 @@ Preview: https://jcoleman304.github.io/bedtime-stories-preview/
   runs a second safety-review pass, and saves the story. The Anthropic key lives only here.
 - Read to me: device `speechSynthesis` in the preview. Premium voices are a launch item.
 
-## One-time backend setup
-Blocked until the Coleman Company Supabase org's overdue invoice is settled
-(Supabase refuses new projects account-wide while any invoice is overdue).
+## Backend (deployed Oct 7 2026)
+Supabase project `bedtime-stories` (ref `hfaymnynbthujhamrhmd`, org "Bedtime Stories" `pgpjhreptkslejqwubqg`, free tier).
+Redeploy the function after edits with `supabase functions deploy generate-story`.
+Original setup steps, for reference:
 
 ```bash
 cd ~/Documents/Dev/bedtime-stories

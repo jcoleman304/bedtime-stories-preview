@@ -2,7 +2,7 @@
 // Runs server-side so the Anthropic key never reaches the browser.
 import Anthropic from "npm:@anthropic-ai/sdk@0.132.0";
 import { zodOutputFormat } from "npm:@anthropic-ai/sdk@0.132.0/helpers/zod";
-import { z } from "npm:zod@3.23.8";
+import { z } from "npm:zod@4.6.5";
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
 const MODEL = Deno.env.get("STORY_MODEL") ?? "claude-haiku-5-5";
